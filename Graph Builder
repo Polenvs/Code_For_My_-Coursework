@@ -1,0 +1,54 @@
+import os
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+
+### Set global font to Times New Roman ###
+rcParams['font.family'] = 'Times New Roman'
+
+### Path to the LINK4 folder ###
+input_dir = r"C:\Users\my comp2\OneDrive\Desktop\NEW\C_Score\LINK4"
+
+### Get all CSV files ending with ".csv" ###
+csv_files = [f for f in os.listdir(input_dir) if f.endswith(".csv")]
+
+### Collect statistics ###
+summary = []
+
+for file in csv_files:
+    path = os.path.join(input_dir, file)
+    df = pd.read_csv(path)
+
+    site_name = os.path.splitext(file)[0]  ### Remove file extension (.csv)
+    site_name = site_name.replace(" Table", "")  ### Clean " Table" suffix
+
+    mean_score = df["CompositeScore"].mean()
+    std_dev = df["CompositeScore"].std()
+    print(f"{site_name}: SD = {std_dev:.4f}")
+
+    summary.append({
+        "Site": site_name,
+        "MeanCompositeScore": mean_score,
+        "SD": std_dev
+    })
+
+### Create a sorted DataFrame ###
+summary_df = pd.DataFrame(summary)
+summary_df = summary_df.sort_values("MeanCompositeScore", ascending=False)
+
+### Plot the bar chart ###
+plt.figure(figsize=(16, 8))
+bars = plt.bar(summary_df["Site"], summary_df["MeanCompositeScore"], yerr=summary_df["SD"],
+               capsize=5, color='purple', edgecolor='black')
+
+### Set labels and font sizes ###
+plt.xlabel("Сайт", fontsize=24)
+plt.ylabel("Середній композитний скор", fontsize=24)
+plt.title("Порівняння сайтів link 4-5 (TKS5) за середнім композитним скором (з SD)", fontsize=26)
+plt.xticks(rotation=45, ha='right', fontsize=14)
+plt.yticks(fontsize=14)
+
+### Optimize layout and save ###
+plt.tight_layout()
+plt.savefig("LINK5_Mean_Composite_Score_with_SD.png", dpi=300)
+plt.show()
