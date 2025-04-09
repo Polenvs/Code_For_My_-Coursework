@@ -1,0 +1,56 @@
+def find_positions(data):
+    results = []
+
+### Here is cycle that allows to find single letters and rewrite them according to their amino acid's name and add index number represents its position in a general amino chain ###
+    for position, sequence in data:
+        for index, char in enumerate(sequence):
+            if char == 'A':
+                results.append(f"ALA{position + index}")
+            elif char == 'R':
+                results.append(f"ARG{position + index}")
+            elif char == 'N':
+                results.append(f"ASN{position + index}")
+            elif char == 'D':
+                results.append(f"ASP{position + index}")
+            elif char == 'C':
+                results.append(f"CYS{position + index}")
+            elif char == 'Q':
+                results.append(f"GLN{position + index}")
+            elif char == 'E':
+                results.append(f"GLU{position + index}")
+            elif char == 'G':
+                results.append(f"GLY{position + index}")
+            elif char == 'H':
+                results.append(f"HIS{position + index}")
+            elif char == 'I':
+                results.append(f"ILE{position + index}")
+            elif char == 'L':
+                results.append(f"LEU{position + index}")
+            elif char == 'K':
+                results.append(f"LYS{position + index}")
+            elif char == 'M':
+                results.append(f"MET{position + index}")
+            elif char == 'F':
+                results.append(f"PHE{position + index}")
+            elif char == 'P':
+                results.append(f"PRO{position + index}")
+            elif char == 'S':
+                results.append(f"SER{position + index}")
+            elif char == 'T':
+                results.append(f"THR{position + index}")
+            elif char == 'W':
+                results.append(f"TRP{position + index}")
+            elif char == 'Y':
+                results.append(f"TYR{position + index}")
+            elif char == 'V':
+                results.append(f"VAL{position + index}")
+
+
+    return results
+### Here is a samle of code that shows how the input data must be written, at first we set its position in a general amino acid chain, at second we set a sequence ###
+input_data =  [(1, 'K'), (2, 'PAQPHR'), (8, 'PSP')]
+
+
+output = find_positions(input_data)
+
+print(" ".join(output))
