@@ -1,0 +1,58 @@
+import os
+from Bio import PDB
+
+### Get the directory where this script is located ###
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+### Define the path to the input PDB file (you need to replace "YOUR MODEL" with the actual filename) ###
+input_pdb = os.path.join(script_dir, "YOUR MODEL")
+
+### Define the output path for the new PDB file (give your desired filename here) ###
+output_pdb = os.path.join(script_dir, "THE NAME OF NEW CREATED FILE.pdb")
+
+### Specify the chain ID to operate on (usually a single character like "A", "B", etc.) ###
+chain_id = "A"
+
+### Define the residue range you want to remove (inclusive) ###
+remove_start, remove_end = 505, 546
+
+### Check if the input file exists, raise error if not found ###
+if not os.path.exists(input_pdb):
+    raise FileNotFoundError(f"file {input_pdb} isn't found.")
+
+### Create a parser to read the structure from the PDB file ###
+parser = PDB.PDBParser(QUIET=True)
+
+### Parse the structure and name it "protein" ###
+structure = parser.get_structure("protein", input_pdb)
+
+### Create a PDBIO object to write structures to file ###
+io = PDB.PDBIO()
+
+### Define a custom class for selecting residues and modifying them ###
+class TrimAndReindex(PDB.Select):
+    def __init__(self):
+        # Start reindexing residues from 1
+        self.new_resid = 1
+
+    def accept_residue(self, residue):
+        # Get the residue number (e.g., 505)
+        res_id = residue.get_id()[1]
+
+        ### Check if the residue belongs to the specified chain and is in the removal range ###
+        if residue.parent.id == chain_id and remove_start <= res_id <= remove_end:
+            return False  # Skip this residue
+
+        ### Otherwise, reassign a new residue number (reindexing) ###
+        residue.id = (' ', self.new_resid, ' ')
+        self.new_resid += 1
+        return True  # Keep this residue
+
+### Set the structure to be saved ###
+io.set_structure(structure)
+
+### Save the new PDB structure, applying the selection and reindexing ###
+io.save(output_pdb, TrimAndReindex())
+
+### Confirm that the file has been saved ###
+print(f"NEW MODEL IS SAVED IN {output_pdb}")
