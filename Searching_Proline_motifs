@@ -1,0 +1,91 @@
+import re
+
+### Insert a sequence of a protein here ###
+protein = "PXXP"
+
+### Here is a dictionary with proline motif families and their types ###
+prm_families = {
+   "Family 1": [
+       r"R.{1}LP.{2}P",
+       r"R.{1}AP.{2}P"
+       r"R.{2}P.{2}P",
+       r"K.{2}LP.{2}P",
+       r"K.{2}AP.{2}P",
+       r"P.{2}P"
+   ],
+   "Family 2": [
+       r".{1}PP.{1}",
+       r"P.{1}P",
+       r"PP.{1}PP",
+       r"P.{2}P",
+       r"P.{3}P"
+   ],
+   "Family 3": [
+       r"P.{2}DY",
+       r"P.{2}P.{1}LP",  # With L
+       r"PPP.{1}LP",     # With L
+       r"PPPPP"
+   ],
+   "Family 4": [
+       r"P.{3}P",
+       r"PP.{1}PP"
+   ],
+   "Family 5": [
+       r"P.{1}P.{2}P"
+   ],
+   "Family 6": [
+       r"R.{2}P.{2}P",
+   ],
+   "Family 7": [
+       r"P.{2}P.{1}K",
+       r"P.{2}P.{1}R",
+       r"K.{1}P.{2}P",
+       r"R.{1}P.{2}P",
+       r"K.{2}P.{2}P",
+       r"R.{2}P.{2}P",
+       r"P.{2}P.{2}K",
+       r"P.{2}P.{2}R",
+       r"P.{2}P"
+   ],
+   "Family 8": [
+       r"P.{3}P",
+       r"P.{3}PR",
+       r"P.{3}P.{1}R",
+   ],
+   "Family 9": [
+       r"P.{2}P.{1}K",
+       r"P.{2}P.{1}R",
+       r"P.{2}P.{1}L",
+       r"P.{2}P.{1}P"
+   ],
+   "Family 10": [
+       r"P.{1}P.{2}R",
+       r"P.{1}A.{2}R",
+       r"P.{2}P.{2}PK",
+       r"P.{2}P.{2}PR",
+       r"P.{2}P.{1}K",
+       r"P.{2}P.{1}R",
+       r"R.{2}KP",
+       r"R.{2}RP",
+       r"PPPPP"
+   ]
+}
+### function that is responsible for proline motif searching ###
+def find_motifs(sequence):
+   motif_info = []
+   for family, motifs in prm_families.items():
+       for motif in motifs:
+           matches = [(m.start() + 1, m.group()) for m in re.finditer(motif, sequence)]
+           if matches:
+               motif_info.append({
+                   "Family": family,
+                   "Motif": motif,
+                   "Count": len(matches),
+                   "Positions": matches
+               })
+   return motif_info
+
+### Displaying results ###
+motif_info = find_motifs(protein)
+for info in motif_info:
+   print(f"Family: {info['Family']}, Motif: {info['Motif']}, Count: {info['Count']}, Positions: {info['Positions']}")
