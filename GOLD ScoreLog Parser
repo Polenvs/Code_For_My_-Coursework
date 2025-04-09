@@ -1,0 +1,81 @@
+import os
+import re
+import pandas as pd
+
+### Define base path where the folders with docking results are located ###
+base_path = r"D:\MyDockingProject"
+
+### Define output directory for saving the extracted CSV tables ###
+output_dir = os.path.join(base_path, "C_Score")
+os.makedirs(output_dir, exist_ok=True)
+
+### List of folders that contain the docking log files ###
+folders = [
+    "520-532", "584-594", "586-591", "750-754", "750-760",
+    "754-758", "780-784", "802-805", "826-830", "826-835",
+    "902-904", "944-955", "985-988", "1044-1050",
+    "1054-1061", "1054-1062"
+]
+
+### Function to extract all docking solutions from a GOLD log file ###
+def extract_all_solutions(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            text = f.read()
+    except Exception as e:
+        print(f"Error reading {file_path}: {e}")
+        return []
+
+    ### Find all solution blocks after genetic algorithm runs ###
+    blocks = re.findall(r"Best docking solution after GA:\s+(.*?)(?:\n\n|\Z)", text, re.DOTALL | re.IGNORECASE)
+    results = []
+
+    for i, block in enumerate(blocks):
+        for line in block.splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and re.search(r"[-+]?\d+\.\d+", line):
+                parts = line.split()
+                if len(parts) >= 3:
+                    try:
+                        gold_score = float(parts[0])
+                        asp_score = float(parts[1])
+                        plp_score = float(parts[2])
+                        ### Calculate composite score based on score functions ###
+                        composite_score = gold_score + plp_score - asp_score
+                        results.append({
+                            "Index": i + 1,  ### docking solution number ###
+                            "GoldScore": gold_score,
+                            "ASP": asp_score,
+                            "PLP": plp_score,
+                            "CompositeScore": composite_score
+                        })
+                    except ValueError:
+                        continue
+                break  ### Exit loop after the first valid line per block ###
+    return results
+
+### Loop through each folder, extract scores, and save to CSV ###
+for folder in folders:
+    folder_path = os.path.join(base_path, folder)
+    log_path = os.path.join(folder_path, "gold_ITSN1_SH3A+ (2) proton_m1.log")
+
+    if not os.path.exists(log_path):
+        print(f"Log file not found in: {folder}")
+        continue
+
+    solutions = extract_all_solutions(log_path)
+
+    if not solutions:
+        print(f"No valid solutions found in {folder}")
+        continue
+
+    ### Create DataFrame and calculate mean composite score ###
+    df = pd.DataFrame(solutions)
+    df["Mean_CompositeScore"] = df["CompositeScore"].mean()
+
+    ### Save table as CSV ###
+    output_path = os.path.join(output_dir, f"{folder}_Table.csv")
+    df.to_csv(output_path, index=False)
+    print(f"Saved to: {output_path}")
+
+print("All folders processed successfully.")
