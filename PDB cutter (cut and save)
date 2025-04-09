@@ -1,0 +1,48 @@
+import os
+from Bio import PDB
+
+### Get the absolute path of the current script ###
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+### Define input and output PDB file paths (replace with actual filenames) ###
+input_pdb = os.path.join(script_dir, "MODEL NAME.pdb")
+output_pdb = os.path.join(script_dir, "OUTPUT MODEL NAME.pdb")
+
+### Specify the chain ID to extract from (e.g., "A") ###
+chain_id = "A"
+
+### Define the residue range (inclusive) you want to extract ###
+res_start, res_end = 742, 805
+
+### Check if the input file exists ###
+if not os.path.exists(input_pdb):
+   raise FileNotFoundError(f"File {input_pdb} is not found. Check the path.")
+
+### Create a parser for reading PDB files ###
+parser = PDB.PDBParser(QUIET=True)
+
+### Parse the input structure and give it a name "protein" ###
+structure = parser.get_structure("protein", input_pdb)
+
+### Create a PDBIO object to save the selected domain ###
+aio = PDB.PDBIO()
+
+### Define a custom selector class to filter residues ###
+class DomainSelect(PDB.Select):
+    def accept_residue(self, residue):
+### Get the residue number ###
+        res_id = residue.get_id()[1]
+        ### If a chain ID is specified, filter by chain and residue range ###
+        if chain_id:
+            return residue.parent.id == chain_id and res_start <= res_id <= res_end
+        ### If no chain is specified, only filter by residue range ###
+        return res_start <= res_id <= res_end
+
+### Set the structure to write ###
+aio.set_structure(structure)
+
+### Save the filtered domain to the output PDB file ###
+aio.save(output_pdb, DomainSelect())
+
+### Print confirmation ###
+print(f"FILE IS SAVED IN {output_pdb}")
